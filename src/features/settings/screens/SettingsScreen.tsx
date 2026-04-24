@@ -1,25 +1,21 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
-import { AppCard, Screen, SectionHeader } from "@/components/ui";
+import { AppCard, Screen } from "@/components/ui";
 import { colors } from "@/constants/colors";
+import { useAppState } from "@/hooks";
 import { radius, spacing } from "@/theme";
 
-const options = [
-  { title: "Profile & security", icon: "person-circle-outline" },
-  { title: "Currency format", icon: "cash-outline" },
-  { title: "Recurring transactions", icon: "repeat-outline" },
-  { title: "Export data", icon: "download-outline" },
-  { title: "Notifications", icon: "notifications-outline" },
-];
-
 export function SettingsScreen() {
+  const router = useRouter();
+  const { appState, signOut } = useAppState();
+
   return (
-    <Screen contentStyle={styles.content}>
+    <Screen contentStyle={styles.content} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <View style={styles.avatar} />
         <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>Design shell for preferences and security flow</Text>
+        <Text style={styles.subtitle}>Reduced to password and identity controls.</Text>
       </View>
 
       <AppCard style={styles.profileCard}>
@@ -28,33 +24,39 @@ export function SettingsScreen() {
             <Ionicons name="person" size={22} color={colors.primary} />
           </View>
           <View style={styles.profileMeta}>
-            <Text style={styles.profileName}>Wealth Workspace</Text>
-            <Text style={styles.profileHint}>Face verification required for sensitive actions</Text>
+            <Text style={styles.profileName}>{appState.auth.email || "Device workspace"}</Text>
+            <Text style={styles.profileHint}>
+              Identity status: {appState.security.faceEnrollmentStatus === "verified" ? "Verified" : "Pending"}
+            </Text>
           </View>
         </View>
       </AppCard>
 
-      <SectionHeader title="Preferences" />
-      <View style={styles.optionList}>
-        {options.map((option) => (
-          <AppCard key={option.title} style={styles.optionCard}>
-            <View style={styles.optionRow}>
-              <View style={styles.optionIcon}>
-                <Ionicons
-                  name={option.icon as keyof typeof Ionicons.glyphMap}
-                  size={18}
-                  color={colors.primary}
-                />
-              </View>
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.textSoft} />
-            </View>
-          </AppCard>
-        ))}
-      </View>
+      <Pressable style={styles.optionCard} onPress={() => router.push("/(auth)/change-password" as never)}>
+        <View style={styles.optionRow}>
+          <View style={styles.optionIcon}>
+            <Ionicons name="lock-closed-outline" size={18} color={colors.primary} />
+          </View>
+          <Text style={styles.optionTitle}>Change Password</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSoft} />
+        </View>
+      </Pressable>
 
-      <Pressable style={styles.primaryAction}>
-        <Text style={styles.primaryActionText}>Run Liveness Check</Text>
+      <Pressable style={styles.optionCard} onPress={() => router.push("/(auth)/id-verification" as never)}>
+        <View style={styles.optionRow}>
+          <View style={styles.optionIcon}>
+            <Ionicons name="scan-outline" size={18} color={colors.primary} />
+          </View>
+          <Text style={styles.optionTitle}>ID Verification</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSoft} />
+        </View>
+      </Pressable>
+
+      <Pressable style={styles.signOutButton} onPress={() => {
+        signOut();
+        router.replace("/(auth)/sign-in" as never);
+      }}>
+        <Text style={styles.signOutText}>Sign Out</Text>
       </Pressable>
     </Screen>
   );
@@ -69,13 +71,6 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 4,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
-    marginBottom: 8,
   },
   title: {
     color: colors.primaryDark,
@@ -116,11 +111,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
-  optionList: {
-    gap: spacing.sm,
-  },
   optionCard: {
-    padding: spacing.md,
+    minHeight: 64,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
   },
   optionRow: {
     flexDirection: "row",
@@ -141,16 +137,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
-  primaryAction: {
+  signOutButton: {
     minHeight: 50,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primary,
+    backgroundColor: colors.dangerSoft,
     marginTop: 8,
   },
-  primaryActionText: {
-    color: colors.surface,
+  signOutText: {
+    color: colors.danger,
     fontSize: 13,
     fontWeight: "800",
   },

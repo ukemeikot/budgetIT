@@ -7,11 +7,11 @@ import { colors } from "@/constants/colors";
 const TAB_ICONS = {
   index: "grid-outline",
   budgets: "wallet-outline",
-  assets: "layers-outline",
+  assets: "analytics-outline",
   settings: "settings-outline",
 } as const;
 
-export default function TabLayout() {
+export default function ProtectedTabsLayout() {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, 10);
 
@@ -44,30 +44,10 @@ export default function TabLayout() {
         ),
       })}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Overview",
-        }}
-      />
-      <Tabs.Screen
-        name="budgets"
-        options={{
-          title: "Budgets",
-        }}
-      />
-      <Tabs.Screen
-        name="assets"
-        options={{
-          title: "Assets",
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Overview" }} />
+      <Tabs.Screen name="budgets" options={{ title: "Budgets" }} />
+      <Tabs.Screen name="assets" options={{ title: "Insights" }} />
+      <Tabs.Screen name="settings" options={{ title: "Settings" }} />
     </Tabs>
   );
 }

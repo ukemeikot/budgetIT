@@ -1,6 +1,8 @@
 import {
-  Budget,
+  Allocation,
+  Category,
   CurrencyCode,
+  ReceiptRecord,
   RecurringTransaction,
   Transaction,
 } from "@/types/finance";
@@ -8,13 +10,17 @@ import {
 export interface FinanceStoreState {
   currency: CurrencyCode;
   transactions: Transaction[];
-  budgets: Budget[];
+  categories: Category[];
+  allocations: Allocation[];
+  receipts: ReceiptRecord[];
   recurringTransactions: RecurringTransaction[];
 }
 
 export const financeStoreInitialState: FinanceStoreState = {
   currency: "NGN",
   transactions: [],
-  budgets: [],
+  categories: [],
+  allocations: [],
+  receipts: [],
   recurringTransactions: [],
 };

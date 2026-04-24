@@ -1,7 +1,5 @@
-import { TransactionCategory } from "@/types/finance";
-
 export interface BudgetProgress {
-  category: TransactionCategory;
+  category: string;
   spent: number;
   limit: number;
 }

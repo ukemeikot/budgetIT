@@ -2,6 +2,7 @@ export * from "./AppHeader";
 export * from "./AppCard";
 export * from "./BarTrendChart";
 export * from "./FloatingActionButton";
+export * from "./FormScreen";
 export * from "./LineTrendChart";
 export * from "./ProgressBar";
 export * from "./Screen";

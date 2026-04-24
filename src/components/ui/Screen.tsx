@@ -1,5 +1,6 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, ReactNode } from "react";
 import { ScrollView, ScrollViewProps, StyleSheet, View, ViewStyle } from "react-native";
+import { StatusBar, StatusBarStyle } from "expo-status-bar";
 import { Edge, SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "@/constants/colors";
@@ -9,8 +10,10 @@ type ScreenProps = PropsWithChildren<
     backgroundColor?: string;
     contentStyle?: ViewStyle;
     edges?: Edge[];
+    footer?: ReactNode;
     safeAreaStyle?: ViewStyle;
     scrollable?: boolean;
+    statusBarStyle?: StatusBarStyle;
   }
 >;
 
@@ -20,8 +23,10 @@ export function Screen({
   contentStyle,
   contentContainerStyle,
   edges = ["top"],
+  footer,
   safeAreaStyle,
   scrollable = true,
+  statusBarStyle = "dark",
   ...props
 }: ScreenProps) {
   const content = (
@@ -30,6 +35,7 @@ export function Screen({
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor }, safeAreaStyle]} edges={edges}>
+      <StatusBar style={statusBarStyle} backgroundColor={backgroundColor} />
       {scrollable ? (
         <ScrollView
           bounces={false}
@@ -43,6 +49,7 @@ export function Screen({
       ) : (
         content
       )}
+      {footer ? <View style={styles.footer}>{footer}</View> : null}
     </SafeAreaView>
   );
 }
@@ -57,5 +64,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  footer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: colors.background,
   },
 });

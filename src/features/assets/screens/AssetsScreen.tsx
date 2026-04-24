@@ -1,54 +1,71 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
-import { AppCard, FloatingActionButton, Screen, SectionHeader } from "@/components/ui";
+import { AppCard, Screen, SectionHeader } from "@/components/ui";
 import { colors } from "@/constants/colors";
-import { recentLedger } from "@/mocks/finance";
+import { useAppState } from "@/hooks";
 import { radius, spacing } from "@/theme";
 
 export function AssetsScreen() {
   const router = useRouter();
+  const { allocationSpend, appState, financeState } = useAppState();
+  const totalSpent = financeState.transactions
+    .filter((entry) => entry.type === "expense")
+    .reduce((sum, entry) => sum + entry.amount, 0);
+  const totalBudget = allocationSpend.reduce((sum, item) => sum + item.budgetedAmount, 0);
+  const utilization = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
   return (
-    <Screen contentStyle={styles.content}>
-      <View style={styles.topRow}>
-        <View style={styles.brandRow}>
-          <View style={styles.avatar} />
-          <Text style={styles.brand}>Sovereign Ledger</Text>
-        </View>
-        <Pressable style={styles.iconButton}>
-          <Ionicons name="notifications-outline" size={16} color={colors.textMuted} />
+    <Screen contentStyle={styles.content} edges={["top", "bottom"]}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Insights</Text>
+        <Text style={styles.subtitle}>Just coz we can. Most cards are presentational, but smart allocation is active.</Text>
+      </View>
+
+      <AppCard style={styles.heroCard}>
+        <Text style={styles.heroEyebrow}>Monthly overview</Text>
+        <Text style={styles.heroValue}>N {totalSpent.toLocaleString()}</Text>
+        <Text style={styles.heroSub}>
+          {totalBudget > 0 ? `Using ${utilization}% of your tracked allocation budget.` : "Insights will grow as you create allocations and ledger entries."}
+        </Text>
+      </AppCard>
+
+      <AppCard style={styles.sectionCard}>
+        <SectionHeader title="Budget Utilization" />
+        <Text style={styles.bodyText}>
+          {totalBudget > 0 ? `You have used N ${totalSpent.toLocaleString()} out of N ${totalBudget.toLocaleString()} tracked locally.` : "There is no budget data yet. Create categories and allocations first."}
+        </Text>
+      </AppCard>
+
+      <AppCard style={styles.sectionCard}>
+        <SectionHeader title="Allocations" actionLabel="View All" onActionPress={() => router.push("/(protected)/(tabs)/budgets" as never)} />
+        {allocationSpend.length > 0 ? (
+          <View style={styles.legend}>
+            {allocationSpend.slice(0, 4).map((item) => (
+              <View key={item.id} style={styles.legendRow}>
+                <View style={styles.dot} />
+                <Text style={styles.legendText}>{item.name}</Text>
+                <Text style={styles.legendValue}>{Math.round((item.spent / Math.max(item.budgetedAmount, 1)) * 100)}%</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.bodyText}>No allocations yet, so there is nothing to analyze here yet.</Text>
+        )}
+      </AppCard>
+
+      <AppCard style={styles.smartCard}>
+        <Text style={styles.smartPercent}>{utilization}%</Text>
+        <Text style={styles.smartTitle}>Smart Allocation Detection</Text>
+        <Text style={styles.smartText}>
+          {allocationSpend.length > 0
+            ? `Based on your offline activity and ${appState.offlineQueue.length} queued changes, the highest-pressure allocation should be reviewed.`
+            : "Once you create allocations and record spend, this card will surface the busiest budget area."}
+        </Text>
+        <Pressable style={styles.smartButton} onPress={() => router.push("/(protected)/budgets/new-allocation" as never)}>
+          <Text style={styles.smartButtonText}>Allocate Now</Text>
         </Pressable>
-      </View>
-
-      <SectionHeader title="Recent Ledger" actionLabel="View All" />
-
-      <View style={styles.list}>
-        {recentLedger.map((item) => (
-          <AppCard key={item.title} style={styles.itemCard}>
-            <View style={styles.itemRow}>
-              <View style={styles.iconWrap}>
-                <Ionicons name="bag-handle-outline" size={16} color={colors.textMuted} />
-              </View>
-              <View style={styles.meta}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.subtitle}>{item.subtitle}</Text>
-              </View>
-              <Text
-                style={[
-                  styles.amount,
-                  item.tone === "success" ? styles.successText : styles.dangerText,
-                ]}
-              >
-                {item.amount}
-              </Text>
-            </View>
-          </AppCard>
-        ))}
-      </View>
-
-      <FloatingActionButton onPress={() => router.push("/transactions/new" as never)} />
+      </AppCard>
     </Screen>
   );
 }
@@ -60,77 +77,95 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: spacing.md,
   },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  header: {
+    gap: 4,
   },
-  brandRow: {
+  title: {
+    color: colors.primaryDark,
+    fontSize: 28,
+    fontWeight: "800",
+  },
+  subtitle: {
+    color: colors.textMuted,
+    fontSize: 13,
+  },
+  heroCard: {
+    gap: spacing.sm,
+  },
+  heroEyebrow: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  heroValue: {
+    color: colors.primaryDark,
+    fontSize: 30,
+    fontWeight: "800",
+  },
+  heroSub: {
+    color: colors.textMuted,
+    fontSize: 12,
+  },
+  sectionCard: {
+    gap: spacing.md,
+  },
+  bodyText: {
+    color: colors.textMuted,
+    lineHeight: 22,
+  },
+  legend: {
+    gap: spacing.sm,
+  },
+  legendRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
   },
-  avatar: {
-    width: 24,
-    height: 24,
+  dot: {
+    width: 10,
+    height: 10,
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
   },
-  brand: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  iconButton: {
-    width: 30,
-    height: 30,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  list: {
-    gap: spacing.sm,
-    marginBottom: 18,
-  },
-  itemCard: {
-    padding: spacing.md,
-  },
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  iconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  meta: {
+  legendText: {
     flex: 1,
-    gap: 3,
-  },
-  title: {
     color: colors.text,
-    fontSize: 13,
     fontWeight: "700",
   },
-  subtitle: {
-    color: colors.textSoft,
-    fontSize: 10,
-  },
-  amount: {
+  legendValue: {
+    color: colors.textMuted,
     fontSize: 12,
+  },
+  smartCard: {
+    backgroundColor: colors.primary,
+    gap: spacing.md,
+  },
+  smartPercent: {
+    color: colors.surface,
+    fontSize: 32,
     fontWeight: "800",
   },
-  successText: {
-    color: colors.success,
+  smartTitle: {
+    color: colors.surface,
+    fontSize: 20,
+    fontWeight: "800",
   },
-  dangerText: {
-    color: colors.danger,
+  smartText: {
+    color: "#D6E5FF",
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  smartButton: {
+    minHeight: 44,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  smartButtonText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "800",
   },
 });

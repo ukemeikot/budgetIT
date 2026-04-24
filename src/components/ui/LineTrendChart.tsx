@@ -1,63 +1,44 @@
-import { Fragment } from "react";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { LineChart } from "react-native-wagmi-charts";
 
 import { colors } from "@/constants/colors";
-import { radius, screenWidth, spacing } from "@/theme";
+import { screenWidth, spacing } from "@/theme";
 
 type LineTrendChartProps = {
   data: number[];
   labels: string[];
 };
 
-const CHART_HEIGHT = 118;
-const CHART_WIDTH = Math.min(screenWidth - 76, 280);
+const CHART_HEIGHT = 140;
+const CHART_WIDTH = screenWidth - 76;
 
-export function LineTrendChart({
-  data,
-  labels,
-}: LineTrendChartProps) {
-  const step = data.length > 1 ? CHART_WIDTH / (data.length - 1) : CHART_WIDTH;
+export function LineTrendChart({ data, labels }: LineTrendChartProps) {
+  // Map your numeric data to the required object format
+  const formattedData = data.map((val, index) => ({
+    timestamp: index,
+    value: val,
+  }));
 
   return (
-    <View style={styles.wrap}>
-      <View style={[styles.chart, { width: CHART_WIDTH }]}>
-        <View style={[styles.gridLine, { top: 18 }]} />
-        <View style={[styles.gridLine, { top: 56 }]} />
-        <View style={[styles.gridLine, { top: 94 }]} />
+    <View style={styles.container}>
+      <LineChart.Provider data={formattedData}>
+        <LineChart height={CHART_HEIGHT} width={CHART_WIDTH}>
+          {/* Path now has a closing tag to wrap the Gradient */}
+          <LineChart.Path color={colors.primary} width={3}>
+            <LineChart.Gradient color={colors.primary} />
+          </LineChart.Path>
 
-        {data.map((point, index) => {
-          const x = index * step;
-          const y = CHART_HEIGHT - point;
-          const next = data[index + 1];
-
-          return (
-            <Fragment key={`${point}-${index}`}>
-              {typeof next === "number" ? (
-                <View
-                  style={[
-                    styles.segment,
-                    {
-                      left: x,
-                      top: y,
-                      width: step,
-                      transform: [
-                        {
-                          rotate: `${Math.atan2(point - next, step) * (180 / Math.PI)}deg`,
-                        },
-                      ],
-                    },
-                  ]}
-                />
-              ) : null}
-              <View style={[styles.dot, { left: x - 3, top: y - 3 }]} />
-            </Fragment>
-          );
-        })}
-      </View>
+          {/* Use CursorCrosshair with a nested Cursor to handle tooltips */}
+          <LineChart.CursorCrosshair color={colors.primary}>
+            <LineChart.Tooltip />
+          </LineChart.CursorCrosshair>
+        </LineChart>
+      </LineChart.Provider>
 
       <View style={[styles.labels, { width: CHART_WIDTH }]}>
-        {labels.map((label) => (
-          <Text key={label} style={styles.label}>
+        {labels.map((label, index) => (
+          <Text key={`${label}-${index}`} style={styles.label}>
             {label}
           </Text>
         ))}
@@ -67,43 +48,21 @@ export function LineTrendChart({
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    gap: spacing.sm,
-  },
-  chart: {
-    height: CHART_HEIGHT,
-    position: "relative",
-    overflow: "hidden",
-  },
-  gridLine: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    borderStyle: "dashed",
-  },
-  segment: {
-    position: "absolute",
-    height: 3,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-  },
-  dot: {
-    position: "absolute",
-    width: 6,
-    height: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.primary,
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: spacing.sm,
+    width: '100%',
   },
   labels: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: spacing.xs,
+    paddingHorizontal: 4,
   },
   label: {
-    fontSize: 10,
-    color: colors.textSoft,
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#94A3B8",
   },
 });
